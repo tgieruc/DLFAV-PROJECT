@@ -1,7 +1,11 @@
+
 torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 numpy
 scipy
 opencv_python_headless
+scipy
+numpy
+
 pandas
 imutils
 matplotlib

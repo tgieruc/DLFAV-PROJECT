@@ -49,9 +49,8 @@ class PoseDetector(object):
     def inference(self, frame):
         #openpifpaf does prediction
         self.openpifpaf_predictions, _, _ = self.openpifpaf_predictor.numpy_image(frame)
-        # get bounding boxes
+        # get keypoints and bounding boxes
         self._get_keypoints()
-
         self._get_bboxes()
         # predicts the pose of each person
         self._keypoints_to_pose()
