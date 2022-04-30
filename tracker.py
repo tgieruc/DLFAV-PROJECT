@@ -1,6 +1,6 @@
-import sys
-sys.path.insert(0, './YOLOX')
-from YOLOX.yolox.data.datasets.coco_classes import COCO_CLASSES
+import sys,os
+sys.path.insert(0, os.path.join(os.path.abspath(''), "YOLOX"))
+from yolox.data.datasets.coco_classes import COCO_CLASSES
 from detector import Detector
 from deep_sort.utils.parser import get_config
 from deep_sort.deep_sort import DeepSort
@@ -37,6 +37,6 @@ class Tracker():
                 scores.append(score)
             bbox_xywh = torch.Tensor(bbox_xywh)
             outputs = self.deepsort.update(bbox_xywh, scores, image)
-            image = vis_track(image, outputs)
+            # image = vis_track(image, outputs)
 
-        return image, outputs
+        return  outputs

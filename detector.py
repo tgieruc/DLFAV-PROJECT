@@ -26,13 +26,13 @@ class Detector():
 
 
         self.device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
-        self.device = torch.device('cpu')
         self.exp = get_exp_by_name(model)
+        self.exp.test_conf = 0.5
         self.test_size = self.exp.test_size  # TODO: 改成图片自适应大小
         self.model = self.exp.get_model()
         self.model.to(self.device)
         self.model.eval()
-        checkpoint = torch.load(ckpt, map_location="cpu")
+        checkpoint = torch.load(ckpt, map_location=self.device)
         self.model.load_state_dict(checkpoint["model"])
 
 
@@ -48,13 +48,14 @@ class Detector():
 
         with torch.no_grad():
             outputs = self.model(img)
-            outputs = postprocess(
-                outputs, self.exp.num_classes, self.exp.test_conf, self.exp.nmsthre  # TODO:用户可更改
-            )[0].cpu().numpy()
-        
-        if outputs[0] is None:
+
+        outputs = postprocess(
+            outputs, self.exp.num_classes, self.exp.test_conf, self.exp.nmsthre  # TODO:用户可更改
+        )[0]
+        if outputs is None:
             info['boxes'], info['scores'], info['class_ids'],info['box_nums']=None,None,None,0
         else:
+            outputs = outputs.cpu().numpy()
             info['boxes'] = outputs[:, 0:4]/ratio
             info['scores'] = outputs[:, 4] * outputs[:, 5]
             info['class_ids'] = outputs[:, 6]
