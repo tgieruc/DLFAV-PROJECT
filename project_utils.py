@@ -1,25 +1,22 @@
 import numpy as np
 
-boxes = np.array([[43,274,350,496,0], [291,  88, 653, 497,13]])
-bbox_poi = np.array([380,219,1578,956])
+def identify_bbox(bbox_target, bboxes_with_id):
 
-def get_poi(bbox_poi, bboxes_with_id):
-    poi_id = None
-    if (bboxes_with_id is not None) and (bbox_poi is not None):
+    target_id = None
+    if (bboxes_with_id is not None) and (bbox_target is not None):
         id = bboxes_with_id[:, 4]
         bboxes = bboxes_with_id[:, :4]
-        bbox_poi[2:] = bbox_poi[2:] + bbox_poi[2:]
+        bbox_target[2:] = bbox_target[2:] + bbox_target[2:]
         IoU = []
         for box in bboxes:
-            IoU.append(bb_intersection_over_union(bbox_poi, box))
+            IoU.append(bb_intersection_over_union(bbox_target, box))
 
         if max(IoU) > 0:
-            poi_id = id[np.argmax(IoU)]
+            target_id = id[np.argmax(IoU)]
 
+    return target_id
 
-    return poi_id
-
-def bb_intersection_over_union(boxA, boxB):
+def bb_intersection_over_union(boxA, boxB): #https://pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/
     # determine the (x, y)-coordinates of the intersection rectangle
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
@@ -39,4 +36,3 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-print(get_poi(bbox_poi, boxes))
