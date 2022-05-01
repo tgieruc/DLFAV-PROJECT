@@ -40,8 +40,8 @@ class PoseDetector(object):
         self.openpifpaf_predictions = None
         self.pose_predictions = None
         self.centers = None
-        self.bboxes = []
-        self.scores = []
+        self.bboxes = np.array([])
+        self.scores = np.array([])
         self.tensor_prediction = None
         self.face_box = False
         self.face_tightness=1
