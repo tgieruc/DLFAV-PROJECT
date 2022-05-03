@@ -35,8 +35,9 @@ class Tracker():
                     continue
                 bbox_xywh.append([int((x1+x2)/2), int((y1+y2)/2), x2-x1, y2-y1])
                 scores.append(score)
-            bbox_xywh = torch.Tensor(bbox_xywh)
-            outputs = self.deepsort.update(bbox_xywh, scores, image)
-            # image = vis_track(image, outputs)
+            if len(bbox_xywh) > 0:
+                bbox_xywh = torch.Tensor(bbox_xywh)
+                outputs = self.deepsort.update(bbox_xywh, scores, image)
+                # image = vis_track(image, outputs)
 
         return  outputs

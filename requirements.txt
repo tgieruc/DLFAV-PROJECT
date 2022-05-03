@@ -1,10 +1,8 @@
-
-torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 numpy
 scipy
 opencv_python_headless
-scipy
-numpy
+opencv-python
+
 
 pandas
 imutils
@@ -14,16 +12,15 @@ thop
 tqdm
 easydict
 tabulate
-torch --extra-index-url https://download.pytorch.org/whl/cu113
 loguru
-apex
+#apex
 ipdb
 #megengine
 motmetrics
 onnx
 onnxruntime
 openvino
-PyYAML==5.4.1
+PyYAML
 seaborn
 openpifpaf
-tensorrt==0.0.1
+tensorrt

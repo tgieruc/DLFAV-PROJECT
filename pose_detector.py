@@ -75,7 +75,7 @@ class PoseDetector(object):
         else:
             ind = np.arange(5,11)
         n_predictions = len(self.openpifpaf_predictions)
-        self.pose_predictions = np.zeros(n_predictions, dtype=int)
+        self.pose_predictions = 0 * np.ones(n_predictions, dtype=int)
 
         filtered_id = np.argwhere(self.keypoints[:,ind,2].min(1) > 0.5).flatten()
         if len(filtered_id) == 0:
