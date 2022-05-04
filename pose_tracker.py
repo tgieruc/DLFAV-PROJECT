@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cdist
 
 class PoseTracker(object):
     """Container for pose detector, sequence detector and tracker"""
@@ -11,12 +12,12 @@ class PoseTracker(object):
     
     def update(self, im): 
         # Pose detector 
-        bbox, pose = self.pose_detector.inference(im)
+        bboxes, pose = self.pose_detector.inference(im)
         # Tracker
         outputs = np.array(self.tracker.update(im))
         if len(outputs > 0):
             # Filter out IDs that are not in both tracker and pose detectors
-            idt, idp = self._id_filtering(outputs, bbox)
+            idt, idp = self._id_filtering(outputs, bboxes)
             # Sequence detector
             id_t = self.sequence_detector.detection(pose[idp], idt)
             if id_t is not None:
@@ -25,25 +26,37 @@ class PoseTracker(object):
 
     def _id_filtering(self, outputs, pbbox):
         idt = []; idp = []
-        for i in range(len(outputs)):
-            id_p = self._identify_bbox(outputs[i], pbbox)
-            if id_p is not None:
-                idt.append(outputs[i,4])
-                idp.append(id_p)
+        # outputs: N x 5, pbbox: M x 4
+        if len(outputs) != 0 and len(pbbox) != 0:
+            IoU = np.zeros((len(outputs),len(pbbox)))
+            for i in range(len(outputs)):
+                IoU[i] = self._identify_bbox(outputs[i], pbbox)
+            # IoU: N x M
+            l = min(IoU.shape)
+            for i in range(l):
+                ind = np.argmax(IoU)
+                ind = np.unravel_index(ind, IoU.shape)
+                if IoU[ind] != 0:
+                    idt.append(ind[0])
+                    idp.append(ind[1])
+                IoU[ind[0],:] = 0
+                IoU[:,ind[1]] = 0
+            idt = np.array(idt); idp = np.array(idp)
+            ind = np.argsort(idp)
+            idt = idt[ind]; idp = idp[ind]
+            idt = outputs[idt,4]
         return idt, idp
 
     def _identify_bbox(self, bbox_tracker, bboxes_pose):
         # returns pose_id, the id of the bbox pose where IoU with tracker bbox is max.
-        pose_id = None
+        #pose_id = None
         if (len(bboxes_pose) != 0) and (len(bbox_tracker) != 0):
             id = np.arange(len(bboxes_pose))
             bboxes_pose[:,2:] = bboxes_pose[:,2:] + bboxes_pose[:,:2]
             IoU = []
             for box in bboxes_pose:
                 IoU.append(self._bb_intersection_over_union(bbox_tracker[:4], box))
-            if max(IoU) > 0:
-                pose_id = id[np.argmax(IoU)]
-        return pose_id
+        return IoU
 
     def _bb_intersection_over_union(self, boxA, boxB): #https://pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/
         # determine the (x, y)-coordinates of the intersection rectangle
