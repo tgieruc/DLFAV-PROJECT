@@ -39,7 +39,7 @@ class PoseDetector(object):
         self.keypoints_filtered = None
         self.openpifpaf_predictions = None
         self.pose_predictions = None
-        self.centers = None
+        self.centers = np.array([])
         self.bboxes = np.array([])
         self.scores = np.array([])
         self.tensor_prediction = None
@@ -52,6 +52,7 @@ class PoseDetector(object):
         # get keypoints and bounding boxes
         self._get_keypoints()
         self._get_bboxes()
+        #self._get_centers()
         # predicts the pose of each person
         self._keypoints_to_pose()
 
@@ -63,8 +64,6 @@ class PoseDetector(object):
         self.keypoints = np.zeros((n_prediction, 17,3))
         for i, prediction in enumerate(self.openpifpaf_predictions):
             self.keypoints[i] = prediction.data
-
-
 
     def _keypoints_to_pose(self):
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -81,7 +80,6 @@ class PoseDetector(object):
         if len(filtered_id) == 0:
             return False
         self.keypoints_filtered = copy.deepcopy(self.keypoints[filtered_id][:,ind,:2])
-
 
         # predict positions
         if self.model_based:
@@ -144,29 +142,40 @@ class PoseDetector(object):
               self.pose_predictions[filtered_id[i]] = pred.int().cpu()
 
     def _get_bboxes(self):
-        n_predictions = len(self.openpifpaf_predictions)
-        self.bboxes = np.zeros((n_predictions, 4))
-        self.scores = np.ones((n_predictions, 2))
+        if self.openpifpaf_predictions is not None:
+            n_predictions = len(self.openpifpaf_predictions)
+            self.bboxes = np.zeros((n_predictions, 4))
+            self.scores = np.ones((n_predictions, 2))
 
-        for i in range(n_predictions):
-            # self.scores[i] = self.openpifpaf_predictions[i].score
-
-            if (not (self.keypoints[i, :3, :2] == 0).any()) and self.face_box:
-                face = self.keypoints[i, :5, :2]
-                d_eyes = np.linalg.norm(face[1] - face[2])
-                if (face[3] == 0.0).any() and (face[4] == 0.0).any():  # no ears
-                    d_ears = 2 * d_eyes
-                elif (face[3] == 0.0).any():  # no left ear
-                    d_ears = np.linalg.norm(face[1] - face[4])
-                elif (face[4] == 0.0).any():  # no right ear
-                    d_ears = np.linalg.norm(face[2] - face[3])
+            for i in range(n_predictions):
+                # self.scores[i] = self.openpifpaf_predictions[i].score
+                if self.face_box:
+                    if (not (self.keypoints[i, :3, :2] == 0).any()): # BUG: if head not detected, error
+                        face = self.keypoints[i, :5, :2]
+                        d_eyes = np.linalg.norm(face[1] - face[2])
+                        if (face[3] == 0.0).any() and (face[4] == 0.0).any():  # no ears
+                            d_ears = 2 * d_eyes
+                        elif (face[3] == 0.0).any():  # no left ear
+                            d_ears = np.linalg.norm(face[1] - face[4])
+                        elif (face[4] == 0.0).any():  # no right ear
+                            d_ears = np.linalg.norm(face[2] - face[3])
+                        else:
+                            d_ears = np.linalg.norm(face[3] - face[4])
+                        w = d_ears * self.face_tightness
+                        h = (d_ears + d_eyes) * self.face_tightness
+                        x = face[0, 0] - w / 2
+                        y = face[0, 1] - h / 2
+                        self.bboxes[i] = np.array([x, y, w, h])
+                    else:
+                        self.bboxes[i] = self.openpifpaf_predictions[i].bbox()
                 else:
-                    d_ears = np.linalg.norm(face[3] - face[4])
-                w = d_ears * self.face_tightness
-                h = (d_ears + d_eyes) * self.face_tightness
-                x = face[0, 0] - w / 2
-                y = face[0, 1] - h / 2
-                self.bboxes[i] = np.array([x, y, w, h])
-            else:
-                self.bboxes[i] = self.openpifpaf_predictions[i].bbox()
+                    self.bboxes[i] = self.openpifpaf_predictions[i].bbox()
 
+    def _get_centers(self):
+        if self.keypoints_filtered is not None:
+            n_predictions = len(self.keypoints_filtered)
+            self.centers = np.zeros([n_predictions, 2])
+            for i in range(n_predictions):
+                self.centers[i] = (self.keypoints_filtered[i,0] + self.keypoints_filtered[i,1])/2
+        else:
+            self.centers = np.array([])
