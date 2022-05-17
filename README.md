@@ -23,3 +23,20 @@ If an error pops up, try manually installing the dependencies in the requirement
 
 Run the `milestone_2.ipynb` notebook to test the program.
 
+## Installation of Real-ESRGAN
+```bash
+git clone https://github.com/xinntao/Real-ESRGAN
+cd Real-ESRGAN
+# Install basicsr - https://github.com/xinntao/BasicSR
+# We use BasicSR for both training and inference
+pip install basicsr
+# facexlib and gfpgan are for face enhancement
+pip install facexlib
+pip install gfpgan
+pip install -r requirements.txt
+python setup.py develop
+
+wget wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P experiments/pretrained_models
+
+
+```
