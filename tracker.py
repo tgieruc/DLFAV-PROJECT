@@ -1,7 +1,7 @@
 import sys,os
 sys.path.insert(0, os.path.join(os.path.abspath(''), "YOLOX"))
 from yolox.data.datasets.coco_classes import COCO_CLASSES
-from detector import Detector
+from detector_yolox import Detector
 from deep_sort.utils.parser import get_config
 from deep_sort.deep_sort import DeepSort
 import torch

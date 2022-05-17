@@ -1,77 +1,118 @@
-import sys
-sys.path.insert(0, './YOLOX')
-import torch
 import numpy as np
-import cv2
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import os
+from PIL import Image
 
-from YOLOX.yolox.data.data_augment import preproc
-from YOLOX.yolox.data.datasets import COCO_CLASSES
-from YOLOX.yolox.exp.build import get_exp_by_name,get_exp_by_file
-from YOLOX.yolox.utils import postprocess
-from utils.visualize import vis
-
-
-
-COCO_MEAN = (0.485, 0.456, 0.406)
-COCO_STD = (0.229, 0.224, 0.225)
+import torch
+import torch.nn.functional as F
 
 
-
-
-class Detector():
-    """ 图片检测器 """
-    def __init__(self, model='yolox-s', ckpt='yolox_s.pth.tar'):
+class Net(torch.nn.Module):
+    def __init__(self, n_feature, n_hidden, n_output, n_c):
+        super(Net, self).__init__()
+        self.hidden = torch.nn.Linear(n_feature, n_hidden)   # hidden layer
+        self.box = torch.nn.Linear(n_hidden, n_output-1)   # output layer
+        self.logit = torch.nn.Linear(n_hidden, 1)
+        
+        self.conv1 = torch.nn.Sequential(         # input shape (3, 80, 60)
+            torch.nn.Conv2d(
+                in_channels = n_c,            # input height
+                out_channels = 8,             # n_filters
+                kernel_size = 5,              # filter size
+                stride = 2,                   # filter movement/step
+                padding = 0,                  
+            ),                              
+            torch.nn.ReLU(),                      # activation
+            #torch.nn.MaxPool2d(kernel_size = 2),    
+        )
+        self.conv2 = torch.nn.Sequential(       
+            torch.nn.Conv2d(in_channels = 8, 
+                            out_channels = 16, 
+                            kernel_size = 5, 
+                            stride = 2, 
+                            padding = 0),      
+            torch.nn.ReLU(),                      # activation
+            #torch.nn.MaxPool2d(2),                
+        )
+        
+        self.conv3 = torch.nn.Sequential(       
+            torch.nn.Conv2d(in_channels = 16, 
+                            out_channels = 8, 
+                            kernel_size = 1, 
+                            stride = 1, 
+                            padding = 0),      
+            torch.nn.ReLU(),                      # activation
+            #torch.nn.MaxPool2d(2),                
+        )
+    def forward(self, x):
+        feat = self.conv1(x)
+        feat = self.conv2(feat)
+        feat = self.conv3(feat)
+        feat = feat.view(feat.size(0), -1)
+        x2 = F.relu(self.hidden(feat))      # activation function for hidden layer
+        
+        out_box = F.relu(self.box(x2))            # linear output
+        out_logit = torch.sigmoid(self.logit(x2))
+        
+        return out_box, out_logit
+        
+class Detector(object):
+    """docstring for Detector"""
+    def __init__(self):
         super(Detector, self).__init__()
+        # TODO: MEAN & STD
+        self.mean = [[[[0.5548078,  0.56693329, 0.53457436]]]] 
+        self.std = [[[[0.26367019, 0.26617227, 0.25692861]]]]
+        self.img_size = 100 
+        self.img_size_w = 80
+        self.img_size_h = 60
+        self.min_object_size = 10
+        self.max_object_size = 40 
+        self.num_objects = 1
+        self.num_channels = 3
+        self.model = Net(n_feature = 1632, n_hidden = 128, n_output = 5, n_c = 3)     # define the network
 
 
+    def load(self, PATH):
+        # self.model = torch.load(PATH)
+        # self.model.eval()
 
-        self.device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
-        self.exp = get_exp_by_name(model)
-        self.exp.test_conf = 0.5
-        self.test_size = self.exp.test_size  # TODO: 改成图片自适应大小
-        self.model = self.exp.get_model()
-        self.model.to(self.device)
+        self.model.load_state_dict(torch.load(PATH))
         self.model.eval()
-        checkpoint = torch.load(ckpt, map_location=self.device)
-        self.model.load_state_dict(checkpoint["model"])
 
+    def forward(self, img):   
+        ##Add a dimension
+        img = np.expand_dims(img.transpose(1,0,2), 0) / 255
 
+        ch1 = img[:,:,:,0].copy()
+        ch3 = img[:,:,:,2].copy()
 
-    def detect(self, raw_img, visual=True, conf=0.5):
-        info = {}
-        img, ratio = preproc(raw_img, self.test_size, COCO_MEAN, COCO_STD)
-        info['raw_img'] = raw_img
-        info['img'] = img
+        img[:,:,:,0] = ch3
+        img[:,:,:,2] = ch1
 
-        img = torch.from_numpy(img).unsqueeze(0)
-        img = img.to(self.device)
+        # print(img.shape)   
+        # print(img)
 
+        ##Preprocess
+        img = (img - self.mean)/self.std
+
+        ##Transpose to model format
+        if(img.shape[1] != self.num_channels):
+            img = img.transpose((0,3,1,2))
+
+        # print(img.shape)
+        # print(img)
+
+        ##Detect
         with torch.no_grad():
-            outputs = self.model(img)
+            pred_y_box, pred_y_logit = self.model.forward(torch.tensor(img, dtype=torch.float32))
 
-        outputs = postprocess(
-            outputs, self.exp.num_classes, self.exp.test_conf, self.exp.nmsthre  # TODO:用户可更改
-        )[0]
-        if outputs is None:
-            info['boxes'], info['scores'], info['class_ids'],info['box_nums']=None,None,None,0
-        else:
-            outputs = outputs.cpu().numpy()
-            info['boxes'] = outputs[:, 0:4]/ratio
-            info['scores'] = outputs[:, 4] * outputs[:, 5]
-            info['class_ids'] = outputs[:, 6]
-            info['box_nums'] = outputs.shape[0]
-        # 可视化绘图
-        if visual:
-            info['visual'] = vis(info['raw_img'], info['boxes'], info['scores'], info['class_ids'], conf, COCO_CLASSES)
-        return info
+            pred_y_box, pred_y_logit = pred_y_box.numpy(), pred_y_logit.numpy()
+            pred_y_label = pred_y_logit > 0.5
+            pred_bboxes = pred_y_box * self.img_size
+            # pred_bboxes = pred_bboxes.reshape(len(pred_bboxes), num_objects, -1)
 
+        return pred_bboxes[0], pred_y_label[0]
 
-
-
-
-
-if __name__=='__main__':
-    detector = Detector()
-    img = cv2.imread('dog.jpg')
-    img_,out = detector.detect(img)
-    print(out)
