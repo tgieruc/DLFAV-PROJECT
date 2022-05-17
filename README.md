@@ -36,7 +36,7 @@ pip install gfpgan
 pip install -r requirements.txt
 python setup.py develop
 
-wget wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P experiments/pretrained_models
+wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P experiments/pretrained_models
 
 
 ```
