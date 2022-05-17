@@ -32,19 +32,20 @@ class PoseTracker(object):
             for i in range(len(outputs)):
                 IoU[i] = self._identify_bbox(outputs[i], pbbox)
             # IoU: N x M
-            l = min(IoU.shape)
-            for i in range(l):
-                ind = np.argmax(IoU)
-                ind = np.unravel_index(ind, IoU.shape)
-                if IoU[ind] != 0:
-                    idt.append(ind[0])
-                    idp.append(ind[1])
-                IoU[ind[0],:] = 0
-                IoU[:,ind[1]] = 0
-            idt = np.array(idt); idp = np.array(idp)
-            ind = np.argsort(idp)
-            idt = idt[ind]; idp = idp[ind]
-            idt = outputs[idt,4]
+            if (IoU > 0).any():
+                l = min(IoU.shape)
+                for i in range(l):
+                    ind = np.argmax(IoU)
+                    ind = np.unravel_index(ind, IoU.shape)
+                    if IoU[ind] != 0:
+                        idt.append(ind[0])
+                        idp.append(ind[1])
+                    IoU[ind[0],:] = 0
+                    IoU[:,ind[1]] = 0
+                idt = np.array(idt); idp = np.array(idp)
+                ind = np.argsort(idp)
+                idt = idt[ind]; idp = idp[ind]
+                idt = outputs[idt,4]
         return idt, idp
 
     def _identify_bbox(self, bbox_tracker, bboxes_pose):
