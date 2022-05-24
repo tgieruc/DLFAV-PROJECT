@@ -92,7 +92,7 @@ class Detector(object):
         self.pose_detector = PoseDetector(n_feature=8, n_output=3, checkpoint_path="pose_classification_simplified.ckpt", simple_mode=True, model_based=False)#Defines the pose detection
         self.sequence_detector = SequenceDetector([1,2], 10) #defines the sequence detection that is used
         self.pose_tracker = PoseTracker(self.pose_detector, self.sequence_detector, self.tracker) #Defines our pose tracker
-        self.upscaler=Upscaler()
+        self.upscaler=Upscaler(model_choice="realesrgan_s", enhance_face=False)
 
         self.poi = None #Person of Interest variable
         self.state = 0 #State of the FSM init
