@@ -1,3 +1,6 @@
 [submodule "YOLOX"]
 	path = YOLOX
 	url = https://github.com/Megvii-BaseDetection/YOLOX
+[submodule "Real-ESRGAN"]
+	path = Real-ESRGAN
+	url = https://github.com/tgieruc/Real-ESRGAN
