@@ -92,6 +92,7 @@ class Detector(object):
         self.pose_detector = PoseDetector(n_feature=8, n_output=3, checkpoint_path="pose_classification_simplified.ckpt", simple_mode=True, model_based=False)#Defines the pose detection
         self.sequence_detector = SequenceDetector([1,2], 10) #defines the sequence detection that is used
         self.pose_tracker = PoseTracker(self.pose_detector, self.sequence_detector, self.tracker) #Defines our pose tracker
+        self.upscaler=Upscaler()
 
         self.poi = None #Person of Interest variable
         self.state = 0 #State of the FSM init
@@ -105,63 +106,23 @@ class Detector(object):
         self.model.eval()
 
     def forward(self, img):   
-        ##Add a dimension
-        #img = np.expand_dims(img.transpose(1,0,2), 0) / 255
-
-        #ch1 = img[:,:,:,0].copy()
-        #ch3 = img[:,:,:,2].copy()
-
-        #img[:,:,:,0] = ch3
-        #img[:,:,:,2] = ch1
-
-        ## print(img.shape)   
-        ## print(img)
-
-        ###Preprocess
-        #img = (img - self.mean)/self.std
-
-        ###Transpose to model format
-        #if(img.shape[1] != self.num_channels):
-            #img = img.transpose((0,3,1,2))
-
-        ## print(img.shape)
-        ## print(img)
-
-        ###Detect
-        #with torch.no_grad():
-            #pred_y_box, pred_y_logit = self.model.forward(torch.tensor(img, dtype=torch.float32))
-
-            #pred_y_box, pred_y_logit = pred_y_box.numpy(), pred_y_logit.numpy()
-            #pred_y_label = pred_y_logit > 0.5
-            #pred_bboxes = pred_y_box * self.img_size
-            # pred_bboxes = pred_bboxes.reshape(len(pred_bboxes), num_objects, -1)
-
-        #return pred_bboxes[0], pred_y_label[0]
-
-
-
-
-
-
-
-            
 
         #En premier il faut pré-process les images que le robot nous envoie (avec le up-scaling)
 
+        im=self.upscaler.enhance(img)
+
         #Ensuite il faut retourner les bbox et leur label au robot (sous le format [center_x,center_y,w,h])
 
-
-
         if self.state == 0:
-           pred_y_box, self.poi = self.pose_tracker.update(im)
+           pred_bboxes, self.poi = self.pose_tracker.update(im)
            if self.poi != None:
                self.state = 1
                
         if self.state == 1:
             self.check_poi = 0
-            outputs = np.array(self.tracker.update(im))
-            for i in range(outputs.shape[0]) :
-                if outputs[i,4] ==self.poi:
+            pred_bboxes = np.array(self.tracker.update(im))
+            for i in range(pred_bboxes.shape[0]) :
+                if pred_bboxes[i,4] ==self.poi:
                     self.check_poi = 1
             if (self.check_poi == 0):
                 self.poi = None
@@ -169,14 +130,18 @@ class Detector(object):
 
         
 
-        with torch.no_grad():
+        #with torch.no_grad():
 
-            pred_y_label[0]=0
+            #pred_y_label[0]=0
             #pred_y_label = pred_y_logit > 0.5 #il faut recup les id des bbox dans les tracker
-            pred_bboxes = pred_y_box * self.img_size
-            pred_bboxes = pred_bboxes.reshape(len(pred_bboxes), num_objects, -1)
-            for i in range(len(pred_y_box)):
-                   pred_y_label[i]=i
+            #pred_bboxes = pred_y_box * self.img_size
+            #pred_bboxes = pred_bboxes.reshape(len(pred_bboxes), num_objects, -1)
+            #for i in range(len(pred_y_box)):
+                   #pred_y_label[i]=i
+                
+        if (pred_bboxes == Null):
+            pred_bboxes[0]=[0,0,0,0]
+            self.poi=0
 
-        return pred_bboxes[0], pred_y_label[0]
+        return pred_bboxes[self.poi], self.poi
 
