@@ -95,17 +95,17 @@ while True:
         bbox, bbox_label = detector.forward(pil_image)
 
         if bbox_label:
-            print("BBOX: {}".format(bbox))
-            print("BBOX_label: {}".format(bbox_label))
+            print(f'detected : poi {bbox_label}')
+            bbox_label = [1.0]
 
-            # https://pymotw.com/3/socket/binary.html
-            values = (bbox[0], bbox[1], 10, 10, float(bbox_label[0]))
-
-            packer = struct.Struct('f f f f f')
-            packed_data = packer.pack(*values)
-
-            # Send data
-            send_info = s.send(packed_data)
         else:
             print("False")
 
+        # https://pymotw.com/3/socket/binary.html
+        values = (bbox[0], bbox[1], 10, 10, float(bbox_label[0]))
+
+        packer = struct.Struct('f f f f f')
+        packed_data = packer.pack(*values)
+
+        # Send data
+        send_info = s.send(packed_data)

@@ -11,4 +11,4 @@ wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESR
 wget -nc https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_s.pth
 # pose classifier weights
 gdown 1iYxlkO_RZJ_6iL6wdIbfjl8VprLlFp1c
-
+gdown 1heuooiFh4dMiYJCKcpB5nCXkj7lW7cRw

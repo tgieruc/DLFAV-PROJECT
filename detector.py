@@ -34,6 +34,7 @@ class Detector(object):
         self.upscaler = Upscaler(model_choice="realesrgan_s", enhance_face=False)
 
     def forward(self, im):
+        im = np.array(im)
         # Image preprocessing
         im = self.upscaler.enhance(im)
         im = imutils.resize(im, height=500, inter=cv2.INTER_BITS2)
@@ -60,9 +61,9 @@ class Detector(object):
                 self.state = "FIND_POI"
 
         if self.poi is not None:
-            return self._reformat_output(outputs), True
+            return self._reformat_output(outputs), self.poi
         else:
-            return None, False
+            return np.zeros(4), [0]
 
     def _reformat_output(self, outputs):
         output = outputs[np.argwhere(outputs[:, 4] == self.poi)].flatten()
