@@ -138,6 +138,10 @@ class Detector(object):
             #pred_bboxes = pred_bboxes.reshape(len(pred_bboxes), num_objects, -1)
             #for i in range(len(pred_y_box)):
                    #pred_y_label[i]=i
+                
+        if (pred_bboxes == Null):
+            pred_bboxes[0]=[0,0,0,0]
+            self.poi=0
 
         return pred_bboxes[self.poi], self.poi
 
