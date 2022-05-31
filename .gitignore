@@ -11,3 +11,6 @@ test2.py
 zzz.py
 .idea
 .vscode
+
+yolox_s.pth.tar
+*.pth
