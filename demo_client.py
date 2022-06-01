@@ -46,4 +46,4 @@ while True:
         print("False")
 
     cv2.imshow("window", img)
-    cv2.waitKey(5)
+    cv2.waitKey(1)
