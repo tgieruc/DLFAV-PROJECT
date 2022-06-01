@@ -1,6 +1,6 @@
 # VITA, EPFL
 
-#import cv2
+import cv2
 import socket
 import sys
 import numpy
@@ -10,6 +10,7 @@ import binascii
 from PIL import Image
 from detector import Detector
 import argparse
+import imutils
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -94,18 +95,14 @@ while True:
         #######################
         bbox, bbox_label = detector.forward(pil_image)
 
-        if bbox_label:
+        if bbox_label != [0.0]:
             print(f'detected : poi {bbox_label}')
             bbox_label = [1.0]
+            bbox = bbox.astype(int)
+            img = cv2.rectangle(img, [bbox[0]-5, bbox[1]-5], [bbox[0]+5, bbox[1]+5], (0,250,0),2)
 
         else:
             print("False")
 
-        # https://pymotw.com/3/socket/binary.html
-        values = (bbox[0], bbox[1], 10, 10, float(bbox_label[0]))
-
-        packer = struct.Struct('f f f f f')
-        packed_data = packer.pack(*values)
-
-        # Send data
-        send_info = s.send(packed_data)
+        cv2.imshow("window", img)
+        cv2.waitKey(5)

@@ -40,7 +40,7 @@ while True:
         print(f'detected : poi {bbox_label}')
         bbox_label = [1.0]
         bbox = bbox.astype(int)
-        img = cv2.rectangle(img, [bbox[0]-5, bbox[1]-5], [bbox[0]+5, bbox[1]+5], (255,0,0),2)
+        img = cv2.rectangle(img, [bbox[0]-5, bbox[1]-5], [bbox[0]+5, bbox[1]+5], (0,250,0),2)
 
     else:
         print("False")
