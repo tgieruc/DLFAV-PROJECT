@@ -20,7 +20,7 @@ COCO_STD = (0.229, 0.224, 0.225)
 
 class Detector():
     """ 图片检测器 """
-    def __init__(self, model='yolox-s', ckpt='yolox_s.pth.tar'):
+    def __init__(self, model='yolox-m', ckpt='yolox_m.pth'):
         super(Detector, self).__init__()
 
 

@@ -37,8 +37,8 @@ class Detector(object):
         im = np.array(im)
 
         # Image preprocessing
-        im = self.upscaler.enhance(im)
-        im = imutils.resize(im, height=500, inter=cv2.INTER_BITS2)
+        # im = self.upscaler.enhance(im)
+        im = imutils.resize(im, height=640, inter=cv2.INTER_BITS2)
         kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
         im = cv2.filter2D(im, -1, kernel)
 
@@ -89,7 +89,7 @@ class Detector(object):
         if self.poi is not None and outputs.ndim == 2:
             output = outputs[np.argwhere(outputs[:, 4] == self.poi)].flatten()
             if output.shape[0] == 5:
-                return 120 / 500 * self._reformat_output(output), self.poi
+                return 120 / 640 * self._reformat_output(output), [1.0]
             else:
                 return np.zeros(4), [0]
         else:
