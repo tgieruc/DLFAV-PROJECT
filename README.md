@@ -15,28 +15,37 @@ In a command window, run the following:
 git clone --recurse-submodules https://github.com/tgieruc/DLFAV-PROJECT
 cd DLFAV-PROJECT
 pip install -r requirements.txt
+
+pip install -r requirements.txt
+
+# Real esrgan                                                                                                                                                                                              
+python Real-ESRGAN/setup.py develop
+wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P Real-ESRGAN/experiments/pretrained_models
+wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P Real-ESRGAN/experiments/pretrained_models
+
+# yolox weights                                                                                                                                                                                            
+wget -nc https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_m.pth
+# pose classifier weights                                                                                                                                                                                  
+gdown 1iYxlkO_RZJ_6iL6wdIbfjl8VprLlFp1c
+gdown 1heuooiFh4dMiYJCKcpB5nCXkj7lW7cRw
+
+```
+
+On Linux, it is also possible to simply run:
+```bash
+bash setup.bash
 ```
 
 If an error pops up, try manually installing the dependencies in the requirements.txt file. Python 3.9 is recommended for all packages to work properly.
 
 ## Testing 
 
-Run the `milestone_2.ipynb` notebook to test the program.
-
-## Installation of Real-ESRGAN
+To test with the computer camera:
 ```bash
-git clone https://github.com/xinntao/Real-ESRGAN
-cd Real-ESRGAN
-# Install basicsr - https://github.com/xinntao/BasicSR
-# We use BasicSR for both training and inference
-pip install basicsr
-# facexlib and gfpgan are for face enhancement
-pip install facexlib
-pip install gfpgan
-pip install -r requirements.txt
-python setup.py develop
+python demo_client.py
+```
 
-wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P experiments/pretrained_models
-
-
+To run on the Loomo robot:
+```bash
+python client.py --downscale 4
 ```
