@@ -7,6 +7,8 @@ This project combines the [OpenPifPaf](https://openpifpaf.github.io/) package fo
 
 A pose detector composed of a simple multilayer perceptron classifies the output of OpenPifPaf from a predefied set of poses, which is then used by a sequence detector for the selection of a person of interest.
 
+A full report can be found [there](https://github.com/tgieruc/DLFAV-PROJECT/blob/master/Report.pdf).
+
 ## Installation 
 
 In a command window, run the following:
@@ -14,12 +16,12 @@ In a command window, run the following:
 ```bash
 git clone --recurse-submodules https://github.com/tgieruc/DLFAV-PROJECT
 cd DLFAV-PROJECT
-pip install -r requirements.txt
+pip install torch
 
 pip install -r requirements.txt
 
-# Real esrgan                                                                                                                                                                                              
-python Real-ESRGAN/setup.py develop
+# Real -esrgan                                                                                                                                                                                              
+pip install -r Real-ESRGAN/requirements.txt
 wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P Real-ESRGAN/experiments/pretrained_models
 wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P Real-ESRGAN/experiments/pretrained_models
 

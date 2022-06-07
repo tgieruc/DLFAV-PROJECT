@@ -1,4 +1,5 @@
 numpy
+gdown
 scipy
 opencv-python
 pandas
@@ -16,10 +17,8 @@ openvino
 PyYAML
 seaborn
 openpifpaf
-tensorrt
-basicsr>=1.3.3.11
 Pillow
 # face enhancement
 facexlib
 gfpgan
-gdown
+

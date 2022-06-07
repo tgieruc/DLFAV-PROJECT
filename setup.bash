@@ -1,9 +1,9 @@
 #!/bin/bash
-
+pip install torch
 pip install -r requirements.txt
 
 # Real esrgan                                                                                                                                                                                              
-python Real-ESRGAN/setup.py develop
+pip install -r Real-ESRGAN/requirements.txt
 wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth  -P Real-ESRGAN/experiments/pretrained_models
 wget -nc https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P Real-ESRGAN/experiments/pretrained_models
 
